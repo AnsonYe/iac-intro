@@ -1,0 +1,40 @@
+name: Tests
+on: push
+jobs:
+  go-tests:
+    name: Run Go TerraTest
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "triggered by a ${{ github.event_name }} event"
+      - run: echo "running on a ${{ runner.os }} server"
+      - run: echo "branch is ${{ github.ref }} and repository is ${{ github.repository }}"
+      - run: |
+          echo '1' $GITHUB_REF
+          echo '2' ${{ github.ref }}
+          echo '3' ${{ github.ref_name }}
+          echo '4' ${{ github.head_ref }}
+          echo '5' ${{ github.base_ref }}
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+      - run: echo "${{ github.repository }} repository has been cloned"
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+      - run: echo "This job's status is ${{ job.status }}."
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.19'
+      - run: go version
+      - uses: autero1/action-terraform@v1.1.1
+        with:
+          terraform_version: 1.4.0
+      - name: Download Go Modules
+        working-directory: test
+        run: go mod download
+      - name: Run Go Tests
+        working-directory: test
+        run: go test -v -tags=test
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
